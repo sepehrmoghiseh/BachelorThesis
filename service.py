@@ -1,7 +1,8 @@
-from FlaskApp import *
 import speedtest
+import requests
 
 result_data = ''
+
 
 def run_speed_test():
     # Create a Speedtest object
@@ -14,11 +15,13 @@ def run_speed_test():
     upload_speed = st.upload()
 
     # Convert speeds to more human-readable units
-    download_speed_mbps = download_speed / 10**6
-    upload_speed_mbps = upload_speed / 10**6
+    download_speed_mbps = download_speed / 10 ** 6
+    upload_speed_mbps = upload_speed / 10 ** 6
 
     # Print the results
-    return f"{download_speed_mbps:.2f} Mbps",f"{upload_speed_mbps:.2f} Mbps"
+    return f"{download_speed_mbps:.2f} Mbps", f"{upload_speed_mbps:.2f} Mbps"
+
+
 def login(username, password):
     rpc_request = {
         "jsonrpc": "2.0",
@@ -26,7 +29,8 @@ def login(username, password):
         "method": "login",
         "params": [username, password]
     }
-    response = loginFlask(rpc_request)
+    response = requests.post("http://192.168.1.1/cgi-bin/luci/rpc/auth", json=rpc_request)
+
     global result_data
     result_data = response.json()['result']
 
@@ -41,7 +45,7 @@ def getUser():
             "0"
         ]
     }
-    response = getUsers(rpc_url, rpc_request)
+    response = requests.post(rpc_url, json=rpc_request)
     user = response.json()['result']
 
     return user
@@ -52,9 +56,8 @@ def what_device_is_connected(result_data):
     rpc_request = {
         "method": "net.host_hints"
     }
-    response = connectedDevice(rpc_url, rpc_request)
+    response = requests.post(rpc_url, json=rpc_request)
     hosts = response.json()['result']
-    print(hosts)
     devices = {}
 
     for key in hosts:
@@ -80,7 +83,7 @@ def changePasswordService(password):
             "root", password
         ]
     }
-    response = changePasswordFlask(rpc_url, rpc_request)
+    response = requests.post(rpc_url, json=rpc_request)
 
 
 if __name__ == "__main__":
