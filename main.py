@@ -1,5 +1,8 @@
-from service import *
 from datetime import datetime
+
+import service
+from service import *
+
 from kivy.animation import Animation
 from kivy.clock import Clock
 from kivy.properties import get_color_from_hex
@@ -204,7 +207,7 @@ class HomeScreen(MDScreen):
             self.check = 0
         for key, values in connected.items():
             if 'ipv4' in connected[key]:
-                self.card = MDCard(orientation='vertical', size_hint_y=None, spacing=5, height="130dp",
+                self.card1 = MDCard(orientation='vertical', size_hint_y=None, spacing=5, height="185dp",
                                    padding=[5, 5, 5, 5])
                 self.text_input1 = MDTextField(
                     hint_text="device",
@@ -219,20 +222,31 @@ class HomeScreen(MDScreen):
                     readonly=True,
                     multiline=False
                 )
-                if 'name' in connected[key] and connected[key]['name'] != 'OpenWrt.lan':
+                if findName(key) !=None:
                     self.text_input3 = MDTextField(
                         hint_text="name",
-                        text=connected[key]['name'],
+                        text=findName(key),
                         readonly=True,
                         multiline=False
                     )
-                    self.card.add_widget(self.text_input3)
-                    self.card.height = '195dp'
-                self.card.add_widget(self.text_input1)
-                self.card.add_widget(self.text_input2)
+                    self.card1.add_widget(self.text_input3)
+                    self.card1.height="225dp"
+                self.optionBox = MDBoxLayout(orientation='horizontal',size_hint=(1,0.3),spacing=4)
+                self.edit = MDRectangleFlatButton(text="edit name",
+                                                       md_bg_color=(0.154, 0.14, 0.33),size_hint=(4,None))
+                self.delete = MDRectangleFlatButton(text="delete name",
+                                                  md_bg_color=(0.154, 0.14, 0.33), size_hint=(4, None))
+                self.optionBox.add_widget(self.edit)
+                self.optionBox.add_widget(self.delete)
+
+                self.card1.add_widget(self.text_input1)
+                self.card1.add_widget(self.text_input2)
+                self.card1.add_widget(self.optionBox)
+                self.edit.bind(on_press=self.show_popup)
+                self.delete.bind(on_press=self.show_popup_delete)
 
                 # Add the MDCard to the BoxLayout
-                self.box_layout.add_widget(self.card)
+                self.box_layout.add_widget(self.card1)
         self.check = self.check + 1
 
     def login_to_openwrt(self, *args):
@@ -247,9 +261,10 @@ class HomeScreen(MDScreen):
         self.change_pass = MDRectangleFlatButton(text="change password", size_hint=(1, None),
                                                  md_bg_color=(0.154, 0.14, 0.33), opacity=0.94)
         self.speedtest = MDRectangleFlatButton(text="speed test", size_hint=(1, None), md_bg_color=(0.154, 0.14, 0.33))
-        self.button3 = MDRectangleFlatButton(text="Button 1", size_hint=(1, None), md_bg_color=(0.154, 0.14, 0.33))
-        self.change_pass.bind(on_press=self.change_password)
+        self.button3 = MDRectangleFlatButton(text="Login History", size_hint=(1, None), md_bg_color=(0.154, 0.14, 0.33))
         self.speedtest.bind(on_press=self.speedtest_method)
+        self.change_pass.bind(on_press=self.change_password)
+        self.button3.bind(on_press=self.loginHistory)
 
         self.layout.add_widget(self.change_pass)
         self.layout.add_widget(self.speedtest)
@@ -294,11 +309,61 @@ class HomeScreen(MDScreen):
     def change_password(self, instance):
         # Get the ScreenManager
         self.manager.current = 'changePass'
-
+    def loginHistory(self, instance):
+        # Get the ScreenManager
+        self.manager.current = 'history'
     def speedtest_method(self, instance):
         # Get the ScreenManager
         self.manager.current = 'speedtest'
 
+    def show_popup(self,instance):
+        self.card = MDCard(orientation='vertical', size_hint_y=None, spacing=5, height="100dp",
+                           padding=[5, 5, 5, 5])
+        # Create a Popup with some content
+        self.user = MDTextField(
+            hint_text="NAME",
+            multiline=False, foreground_color=get_color_from_hex("#FFFFFF"))
+        self.card.add_widget(self.user)
+        self.submit = MDRectangleFlatButton(text="SUBMIT",
+                                               md_bg_color=(0.154, 0.14, 0.33), size_hint=(1, None))
+        self.card.add_widget(self.submit)
+        self.submit.bind(on_press=self.editName)
+        self.popup1 = Popup(title=instance.parent.parent.children[2].text, content=self.card, size_hint=(None, None), size=(300, 200))
+        anim_in = Animation(opacity=1, duration=2)
+        anim_in.start(self.popup1)
+        self.popup1.open()
+    def show_popup_delete(self,instance):
+        self.options = MDBoxLayout(orientation='vertical', spacing=4)
+
+        self.alert = MDTextField(
+
+            text="are you sure you want to delete the name for "+instance.parent.parent.children[2].text+" ?",
+            multiline=False, foreground_color=get_color_from_hex("#FFFFFF"))
+        self.optionBox = MDBoxLayout(orientation='horizontal', size_hint=(1, 0.3), spacing=4)
+        self.yes = MDRectangleFlatButton(text="Yes",
+                                          md_bg_color=(0.154, 0.14, 0.33), size_hint=(4, None))
+        self.no = MDRectangleFlatButton(text="No",
+                                            md_bg_color=(0.154, 0.14, 0.33), size_hint=(4, None))
+        self.optionBox.add_widget(self.yes)
+        self.optionBox.add_widget(self.no)
+        self.options.add_widget(self.alert)
+        self.options.add_widget(self.optionBox)
+        self.popup1 = Popup(title=instance.parent.parent.children[2].text, content=self.options, size_hint=(None, None),
+                            size=(450, 200))
+        self.no.bind(on_release=self.popup1.dismiss)
+        self.yes.bind(on_press=self.deleteName)
+        anim_in = Animation(opacity=1, duration=2)
+        anim_in.start(self.popup1)
+        self.popup1.open()
+    def editName(self,instance):
+
+        service.editName(self.user.text,instance.parent.parent.parent.children[2].text)
+        self.connected = what_device_is_connected(self.result_data)
+        self.addconnected(self.connected)
+    def deleteName(self,instance):
+        service.deleteName(instance.parent.parent.children[1].text[45:-2])
+        self.connected = what_device_is_connected(self.result_data)
+        self.addconnected(self.connected)
 
 class changePassword(MDScreen):
     def __init__(self, *args, **kwargs):
@@ -456,6 +521,68 @@ class speedTest(MDScreen):
     def login_to_openwrt(self, *args):
         self.manager.current = "home"
 
+class loginHistory(MDScreen):
+    def __init__(self, *args, **kwargs):
+        super(loginHistory, self).__init__(*args, **kwargs)
+        self.background_image = Image(source='pics/output.jpg', allow_stretch=True, keep_ratio=False)
+        self.add_widget(self.background_image)
+
+        self.box_layout = MDBoxLayout(orientation='vertical', size_hint_y=None, spacing=10, padding=[10, 15, 10, 30],
+                                      opacity=0.8, size_hint=(1, None))
+        self.home = MDFloatingActionButton(icon="pics/25694.png",
+                                           md_bg_color=(0.154, 0.14, 0.33),on_press=self.login_to_openwrt)
+        self.buttons = MDBoxLayout(orientation='horizontal', size_hint=(1, None), padding=[10, 15, 10, 30], spacing=20)
+        self.buttons.add_widget(self.home)
+        self.lay2 = MDBoxLayout(orientation='vertical')
+        self.lay2.add_widget(self.buttons)
+        self.spacer = MDBoxLayout(orientation='vertical', size_hint=(1, 0.8))
+        self.scroll_view = MDScrollView()
+        self.scroll_view.add_widget(self.box_layout)
+        self.box_layout.bind(minimum_height=self.box_layout.setter('height'))
+
+        self.lay2.add_widget(self.scroll_view)
+        self.add_widget(self.lay2)
+
+    def on_enter(self, *args):
+        self.addconnected()
+
+
+    def addconnected(self):
+        self.box_layout.clear_widgets()
+        report= reportLogin()
+        lines = report.splitlines()
+
+        for line in lines:
+            first = line.find("|")
+            second = line.find("|", first + 1)
+            print(line[first+1:second])
+            print(line[second+2:])
+            self.card = MDCard(orientation='vertical', size_hint_y=None, spacing=5, height="130dp",
+                               padding=[5, 5, 5, 5])
+            self.text_input1 = MDTextField(
+                hint_text="ip",
+                text=line[first+1:second],
+                readonly=True,
+                multiline=False
+            )
+
+            self.text_input2 = MDTextField(
+                hint_text="date",
+                text=line[second+2:],
+                readonly=True,
+                multiline=False
+            )
+
+            self.card.height = '130dp'
+
+            self.card.add_widget(self.text_input1)
+            self.card.add_widget(self.text_input2)
+            # Add the MDCard to the BoxLayout
+            self.box_layout.add_widget(self.card)
+
+    def login_to_openwrt(self, *args):
+        self.manager.current = "home"
+
 
 class OpenWRTApp(MDApp):
     def build(self):
@@ -464,6 +591,8 @@ class OpenWRTApp(MDApp):
         sm.add_widget(HomeScreen(name='home'))
         sm.add_widget(changePassword(name='changePass'))
         sm.add_widget(speedTest(name='speedtest'))
+        sm.add_widget(loginHistory(name='history'))
+
 
         return sm
 

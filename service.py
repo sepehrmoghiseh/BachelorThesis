@@ -1,91 +1,22 @@
-import speedtest
-import requests
+from kivy.app import App
+from kivy.uix.boxlayout import BoxLayout
+from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
+import matplotlib.pyplot as plt
 
-result_data = ''
+class MatplotlibApp(App):
+    def build(self):
+        # Create a Matplotlib figure and plot
+        fig, ax = plt.subplots()
+        ax.plot([1, 2, 3, 4, 5], [2, 4, 6, 8, 10])
 
+        # Create a Kivy layout
+        layout = BoxLayout(orientation='vertical')
 
-def run_speed_test():
-    # Create a Speedtest object
-    st = speedtest.Speedtest()
+        # Create a Matplotlib canvas
+        canvas = FigureCanvasKivyAgg(fig)
+        layout.add_widget(canvas)
 
-    # Get download speed in bits per second
-    download_speed = st.download()
+        return layout
 
-    # Get upload speed in bits per second
-    upload_speed = st.upload()
-
-    # Convert speeds to more human-readable units
-    download_speed_mbps = download_speed / 10 ** 6
-    upload_speed_mbps = upload_speed / 10 ** 6
-
-    # Print the results
-    return f"{download_speed_mbps:.2f} Mbps", f"{upload_speed_mbps:.2f} Mbps"
-
-
-def login(username, password):
-    rpc_request = {
-        "jsonrpc": "2.0",
-        "id": 1,
-        "method": "login",
-        "params": [username, password]
-    }
-    response = requests.post("http://192.168.1.1/cgi-bin/luci/rpc/auth", json=rpc_request)
-
-    global result_data
-    result_data = response.json()['result']
-
-    return result_data
-
-
-def getUser():
-    rpc_url = "http://192.168.1.1/cgi-bin/luci/rpc/sys?auth=" + result_data
-    rpc_request = {
-        "method": "user.getuser",
-        "params": [
-            "0"
-        ]
-    }
-    response = requests.post(rpc_url, json=rpc_request)
-    user = response.json()['result']
-
-    return user
-
-
-def what_device_is_connected(result_data):
-    rpc_url = "http://192.168.1.1/cgi-bin/luci/rpc/sys?auth=" + result_data
-    rpc_request = {
-        "method": "net.host_hints"
-    }
-    response = requests.post(rpc_url, json=rpc_request)
-    hosts = response.json()['result']
-    devices = {}
-
-    for key in hosts:
-
-        if 'name' in hosts[key]:
-            if 'ipv4' in hosts[key]:
-                if "OpenWrt" in hosts[key]['name']:
-                    continue
-
-                else:
-                    devices[hosts[key]['name']] = {'ip': hosts[key]['ipv4'], 'mac': key}
-        else:
-            continue
-    return hosts
-    # return devices
-
-
-def changePasswordService(password):
-    rpc_url = "http://192.168.1.1/cgi-bin/luci/rpc/sys?auth=" + result_data
-    rpc_request = {
-        "method": "user.setpasswd",
-        "params": [
-            "root", password
-        ]
-    }
-    response = requests.post(rpc_url, json=rpc_request)
-
-
-if __name__ == "__main__":
-    result_data = login('root', 'admin')
-    run_speed_test()
+if __name__ == '__main__':
+    MatplotlibApp().run()
