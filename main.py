@@ -1,10 +1,8 @@
-from kivy.garden.matplotlib import FigureCanvasKivyAgg
-from kivy.uix.boxlayout import BoxLayout
-
-from service import *
+import matplotlib.pyplot as plt
 from kivy.animation import Animation
 from kivy.clock import Clock
 from kivy.properties import get_color_from_hex
+from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.image import Image, AsyncImage
 from kivy.uix.popup import Popup
 from kivy.uix.textinput import TextInput
@@ -18,9 +16,9 @@ from kivymd.uix.screenmanager import MDScreenManager
 from kivymd.uix.scrollview import MDScrollView
 from kivymd.uix.spinner import MDSpinner
 from kivymd.uix.textfield import MDTextField
-from kivy.garden.matplotlib import FigureCanvasKivyAgg
-from kivy.uix.boxlayout import BoxLayout
-import matplotlib.pyplot as plt
+
+from garden_matplotlib.backend_kivyagg import FigureCanvasKivyAgg
+from service import *
 
 
 class LoginScreen(MDScreen):
@@ -238,7 +236,7 @@ class HomeScreen(MDScreen):
                 self.delete = MDRectangleFlatButton(text="delete name",
                                                     md_bg_color=(0.154, 0.14, 0.33), size_hint=(3, None))
                 self.disconnect = MDRectangleFlatButton(text="disconnect the devices",
-                                                    md_bg_color=(0.154, 0.14, 0.33), size_hint=(3, None))
+                                                        md_bg_color=(0.154, 0.14, 0.33), size_hint=(3, None))
                 self.optionBox.add_widget(self.edit)
                 self.optionBox.add_widget(self.delete)
                 self.optionBox.add_widget(self.disconnect)
@@ -253,13 +251,14 @@ class HomeScreen(MDScreen):
                 # Add the MDCard to the BoxLayout
                 self.box_layout.add_widget(self.card1)
         self.check = self.check + 1
-    def show_popup_disconnect(self,instance):
+
+    def show_popup_disconnect(self, instance):
         self.options = MDBoxLayout(orientation='vertical', spacing=4)
 
         self.alert = MDTextField(
 
-            text="are you sure you want to disconnect the device: " + instance.parent.parent.children[2].text + " ?",
-            multiline=False, foreground_color=get_color_from_hex("#FFFFFF"))
+            text="are you sure you want to disconnect the device\n: " + instance.parent.parent.children[2].text + " ?",
+            multiline=True, foreground_color=get_color_from_hex("#FFFFFF"))
         self.optionBox = MDBoxLayout(orientation='horizontal', size_hint=(1, 0.3), spacing=4)
         self.yes = MDRectangleFlatButton(text="Yes",
                                          md_bg_color=(0.154, 0.14, 0.33), size_hint=(4, None))
@@ -276,8 +275,6 @@ class HomeScreen(MDScreen):
         anim_in = Animation(opacity=1, duration=2)
         anim_in.start(self.popup1)
         self.popup1.open()
-
-
 
     def disconnectDevice(self, instance):
         print(instance.parent.parent.children[1].text[48:-2].lower())
@@ -383,9 +380,11 @@ class HomeScreen(MDScreen):
     def userUsageHistory(self, instance):
         # Get the ScreenManager
         self.manager.current = 'userUsageHistory'
+
     def dataUsageHistory(self, instance):
         # Get the ScreenManager
         self.manager.current = 'dataUsage'
+
     def show_popup(self, instance):
         self.card = MDCard(orientation='vertical', size_hint_y=None, spacing=5, height="100dp",
                            padding=[5, 5, 5, 5])
@@ -409,8 +408,8 @@ class HomeScreen(MDScreen):
 
         self.alert = MDTextField(
 
-            text="are you sure you want to delete the name for " + instance.parent.parent.children[2].text + " ?",
-            multiline=False, foreground_color=get_color_from_hex("#FFFFFF"))
+            text="are you sure you want\n to delete the name for " + instance.parent.parent.children[2].text + " ?",
+            multiline=True, foreground_color=get_color_from_hex("#FFFFFF"))
         self.optionBox = MDBoxLayout(orientation='horizontal', size_hint=(1, 0.3), spacing=4)
         self.yes = MDRectangleFlatButton(text="Yes",
                                          md_bg_color=(0.154, 0.14, 0.33), size_hint=(4, None))
@@ -668,7 +667,6 @@ class speedtestHistory(MDScreen):
         self.times = None
         # Create a Matplotlib figure and plot
 
-
     def on_enter(self, *args):
         fig, ax = plt.subplots()
 
@@ -718,11 +716,12 @@ class userSpeedtestHistory(MDScreen):
         # Convert timestamps to Matplotlib date format
 
         # Plot the data
-        ax.bar(bar_positions_download, self.speeds, width=0.4, align='center', label='Download Speeds', color='blue', alpha=0.7)
-        ax.bar(bar_positions_download, self.uploads, width=0.4, align='edge', label='Upload Speeds', color='orange', alpha=0.7)
+        ax.bar(bar_positions_download, self.speeds, width=0.4, align='center', label='Download Speeds', color='blue',
+               alpha=0.7)
+        ax.bar(bar_positions_download, self.uploads, width=0.4, align='edge', label='Upload Speeds', color='orange',
+               alpha=0.7)
         ax.set_xticks(range(len(self.times)))
         ax.set_xticklabels([date.strftime("%Y-%m-%d %H:%M:%S") for date in self.times], rotation=45, ha="right")
-
 
         ax.legend()
         # Create a Kivy layout
@@ -739,6 +738,7 @@ class userSpeedtestHistory(MDScreen):
         # Handle the "Turn Back" button press here
         self.manager.current = "home"
 
+
 class userUsageHistory(MDScreen):
     def __init__(self, *args, **kwargs):
         super(userUsageHistory, self).__init__(*args, **kwargs)
@@ -748,15 +748,16 @@ class userUsageHistory(MDScreen):
 
     def convert_to_minutes(self, seconds):
         return seconds / 60.0
+
     def on_enter(self, *args):
-        self.times,self.speeds=usage()
+        self.times, self.speeds = usage()
         fig, ax = plt.subplots()
         times_in_minutes = [self.convert_to_minutes(sec) for sec in self.times]
         y_unit = 'Minutes' if max(times_in_minutes) > 60 else 'Seconds'
-        ax.bar(self.speeds, times_in_minutes, color='blue', label=f'Usage Time ({y_unit})',alpha=0.7, width=0.4)
+        ax.bar(self.speeds, times_in_minutes, color='blue', label=f'Usage Time ({y_unit})', alpha=0.7, width=0.4)
         ax.set_xticks(self.speeds)
         ax.set_xticklabels(self.speeds, rotation=45, ha='right')
-        
+
         canvas = FigureCanvasKivyAgg(fig)
         self.layout = BoxLayout(orientation='vertical')
         self.layout.add_widget(canvas)
@@ -769,6 +770,8 @@ class userUsageHistory(MDScreen):
     def turn_back(self, instance):
         # Handle the "Turn Back" button press here
         self.manager.current = "home"
+
+
 class dataUsage(MDScreen):
     def __init__(self, *args, **kwargs):
         super(dataUsage, self).__init__(*args, **kwargs)
@@ -780,16 +783,16 @@ class dataUsage(MDScreen):
         fig, ax = plt.subplots()
 
         # Assuming speedtestGateWay() returns two lists of timestamps and speeds
-        self.times,self.data = data_usage()
+        self.times, self.data = data_usage()
         bar_width = 0.35
         bar_positions_download = [i - bar_width / 2 for i in range(len(self.times))]
         # Convert timestamps to Matplotlib date format
 
         # Plot the data
-        ax.bar(bar_positions_download, self.data, width=0.4, align='center', label='Total Speeds', color='blue', alpha=0.7)
+        ax.bar(bar_positions_download, self.data, width=0.4, align='center', label='Total Speeds', color='blue',
+               alpha=0.7)
         ax.set_xticks(range(len(self.times)))
         ax.set_xticklabels([date.strftime("%Y-%m-%d") for date in self.times], rotation=45, ha="right")
-
 
         ax.legend()
         # Create a Kivy layout
@@ -805,6 +808,7 @@ class dataUsage(MDScreen):
     def turn_back(self, instance):
         # Handle the "Turn Back" button press here
         self.manager.current = "home"
+
 
 class OpenWRTApp(MDApp):
     def build(self):
