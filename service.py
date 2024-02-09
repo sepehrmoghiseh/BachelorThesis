@@ -236,8 +236,9 @@ def speedtestGateWay():
     rpc_request = {"method": "exec", "params": ["sqlite3 database.db \"SELECT COUNT(*) FROM speedtest\""]}
     response = requests.post(rpc_url, json=rpc_request).json()
     if int(response['result']) > 10:
+        result=int(response['result'])-10
         rpc_request = {"method": "exec", "params": [
-            "sqlite3 database.db \"DELETE FROM speedtest WHERE id = (SELECT MIN(id) FROM speedtest)\""]}
+            "sqlite3 database.db \"DELETE FROM speedtest WHERE id IN (SELECT id FROM speedtest LIMIT "+str(result)+");\""]}
         requests.post(rpc_url, json=rpc_request).json()
     rpc_url = "http://192.168.1.1/cgi-bin/luci/rpc/sys?auth=" + result_data
     rpc_request = {"method": "exec", "params": ["sqlite3 database.db \"SELECT * FROM speedtest\""]}
@@ -261,8 +262,9 @@ def userSpeedMat():
     rpc_request = {"method": "exec", "params": ["sqlite3 database.db \"SELECT COUNT(*) FROM userSpeedtest\""]}
     response = requests.post(rpc_url, json=rpc_request).json()
     if int(response['result']) > 10:
+        result=int(response['result'])-10
         rpc_request = {"method": "exec", "params": [
-            "sqlite3 database.db \"DELETE FROM speedtest WHERE id = (SELECT MIN(id) FROM userSpeedtest)\""]}
+            "sqlite3 database.db \"DELETE FROM userSpeedtest WHERE id IN (SELECT id FROM userSpeedtest LIMIT "+str(result)+");\""]}
         requests.post(rpc_url, json=rpc_request).json()
     rpc_url = "http://192.168.1.1/cgi-bin/luci/rpc/sys?auth=" + result_data
     rpc_request = {"method": "exec", "params": ["sqlite3 database.db \"SELECT * FROM userSpeedtest\""]}
