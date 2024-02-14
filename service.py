@@ -236,26 +236,27 @@ def speedtestGateWay():
     rpc_request = {"method": "exec", "params": ["sqlite3 database.db \"SELECT COUNT(*) FROM speedtest\""]}
     response = requests.post(rpc_url, json=rpc_request).json()
     if int(response['result']) > 10:
-        result=int(response['result'])-10
+        result = int(response['result']) - 10
         rpc_request = {"method": "exec", "params": [
-            "sqlite3 database.db \"DELETE FROM speedtest WHERE id IN (SELECT id FROM speedtest LIMIT "+str(result)+");\""]}
+            "sqlite3 database.db \"DELETE FROM speedtest WHERE id IN (SELECT id FROM speedtest LIMIT " + str(
+                result) + ");\""]}
         requests.post(rpc_url, json=rpc_request).json()
     rpc_url = "http://192.168.1.1/cgi-bin/luci/rpc/sys?auth=" + result_data
     rpc_request = {"method": "exec", "params": ["sqlite3 database.db \"SELECT * FROM speedtest\""]}
-    result= requests.post(rpc_url, json=rpc_request).json()['result']
+    result = requests.post(rpc_url, json=rpc_request).json()['result']
     lines = result.splitlines()
-    times=[]
-    speeds=[]
+    times = []
+    speeds = []
+    uploads = []
     for line in lines:
         first = line.find("|")
         second = line.find("|", first + 1)
-        speeds.append(float(line[second + 1:-1]))
+        third = line.find("|", second + 1)
+        speeds.append(float(line[second + 1:third]))
         times.append(datetime.strptime(line[first + 1:second], "%Y-%m-%d %H:%M:%S"))
-
-
-
-    # Show the plot
-    return times, speeds
+        uploads.append(float(line[third + 1:]))
+    print(uploads)
+    return times, speeds, uploads
 
 def userSpeedMat():
     rpc_url = "http://192.168.1.1/cgi-bin/luci/rpc/sys?auth=" + result_data
@@ -345,3 +346,4 @@ def stations():
 
 if __name__ == "__main__":
     result_data = login('root', 'admin')
+    speedtestGateWay()

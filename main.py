@@ -663,6 +663,7 @@ class loginHistory(MDScreen):
 class speedtestHistory(MDScreen):
     def __init__(self, *args, **kwargs):
         super(speedtestHistory, self).__init__(*args, **kwargs)
+        self.uploads = None
         self.speeds = None
         self.times = None
         # Create a Matplotlib figure and plot
@@ -671,13 +672,15 @@ class speedtestHistory(MDScreen):
         fig, ax = plt.subplots()
 
         # Assuming speedtestGateWay() returns two lists of timestamps and speeds
-        self.times, self.speeds = speedtestGateWay()
+        self.times, self.speeds, self.uploads = speedtestGateWay()
         bar_width = 0.35
         bar_positions_download = [i - bar_width / 2 for i in range(len(self.times))]
         # Convert timestamps to Matplotlib date format
 
         # Plot the data
         ax.bar(bar_positions_download, self.speeds, width=0.4, align='center', label='Download Speeds', color='blue',
+               alpha=0.7)
+        ax.bar(bar_positions_download, self.uploads, width=0.4, align='edge', label='Upload Speeds', color='orange',
                alpha=0.7)
         ax.set_xticks(range(len(self.times)))
         ax.set_xticklabels([date.strftime("%Y-%m-%d %H:%M:%S") for date in self.times], rotation=45, ha="right")
@@ -692,7 +695,6 @@ class speedtestHistory(MDScreen):
         turn_back_button = MDRaisedButton(text='Turn Back', on_press=self.turn_back)
         layout.add_widget(turn_back_button)
         self.add_widget(layout)
-
     def turn_back(self, instance):
         # Handle the "Turn Back" button press here
         self.manager.current = "home"
