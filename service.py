@@ -205,8 +205,7 @@ def deleteName(mac):
     rpc_url = "http://192.168.1.1/cgi-bin/luci/rpc/sys?auth=" + result_data
     mac = "\'" + mac + "\'"
 
-    delete = "DELETE FROM devices WHERE mac_address = " + mac + ";"
-
+    delete = "DELETE FROM devices WHERE mac_address = " + mac +";"
     command = "sqlite3 database.db \"" + delete + "\""
     rpc_request = {"method": "exec", "params": [command]}
     requests.post(rpc_url, json=rpc_request).json()

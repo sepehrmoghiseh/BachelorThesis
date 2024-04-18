@@ -436,7 +436,7 @@ class HomeScreen(MDScreen):
         self.addconnected(self.connected)
 
     def deleteName(self, instance):
-        deleteName(instance.parent.parent.children[1].text[45:-2])
+        deleteName(instance.parent.parent.children[1].text[46:-2])
         self.popup1.dismiss()
 
         self.connected = what_device_is_connected(self.result_data)
